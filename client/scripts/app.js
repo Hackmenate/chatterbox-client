@@ -1,12 +1,13 @@
 (function(){
 
 	window.app = {
+		existingRooms:[],
 		server: 'https://api.parse.com/1/classes/chatterbox',
 		init: function(){
 
 		},
 		send: function(data){
-			alert("this is the alert from send: ", data)
+			alert("almost there")
 			$.ajax({
 			  url: app.server,
 			  type: 'POST',
@@ -14,6 +15,7 @@
 			  contentType: 'application/json',
 			  success: function (data) {
 			  	app.fetch()
+			  	alert("success!")
 			    console.log('chatterbox: Message sent');
 			  },
 			  error: function (data) {
@@ -31,31 +33,25 @@
 			  contentType: 'application/json',
 			  success: function (data) {
 			  	console.log(data)
-			    for (var i=0;i<data.results.length;i++){
-			    	if (data.results[i].roomname===$("#roomSelect option:selected").text()){
-			    		app.addMessage(data.results[i])
-			    	}
-			    }
-
-			    var rooms=[]
-
-			    for (var i=0;i<data.results.length;i++){
-			    	rooms.push(data.results[i].roomname)
-			    }
-
-			    rooms=_.uniq(rooms)
-
-			    for (var i=0;i<rooms.length;i++){
-			    	app.addRoom(rooms[i])
-			    }
-
-
-
+			    
+			  	app.populateMessages(data)
+			  	app.populateRooms(data)
+			  
 			  },
 			  error: function (data) {
 			    console.error('chatterbox: Failed to retrieve');
 			  }
 			});
+		},
+
+		populateMessages: function(data){
+			app.clearMessages()
+
+			for (var i=0;i<data.results.length;i++){
+			    	if (data.results[i].roomname===$("#roomSelect option:selected").text()){
+			    		app.addMessage(data.results[i])
+			    	}
+			    }
 		},
 
 		clearMessages: function(message){
@@ -64,8 +60,24 @@
 
 		addMessage: function(message){
 			var user = message.username
-			var box = "<div class='box'><div class='username "+user+"'>"+user+"</div><div class='text'>"+message.text+"</div></div>"
-			$("#chats").append(box)
+			var chat = "<div class='chat'><div class='username "+user+"'>"+user+"</div><div class='text'>"+message.text+"</div></div>"
+			$("#chats").append(chat)
+		},
+
+		populateRooms:function(data){
+			  var rooms=[]
+
+			    for (var i=0;i<data.results.length;i++){
+			    	rooms.push(data.results[i].roomname)
+			    }
+			    
+			    for (var i=0;i<rooms.length;i++){
+		    		if (app.existingRooms.indexOf(rooms[i]) ===-1){
+				    	app.addRoom(rooms[i])
+				    	app.existingRooms.push(rooms[i])		    		
+		    		}
+			    }
+
 		},
 
 		addRoom: function(rooms){
@@ -77,43 +89,38 @@
 			$("."+classHolder[1]).addClass("friend")
 		},
 
-		// handleSubmit: function(){
-		// 	var message = $("#message")
-		// 	app.send(message.val())
-		// }
-
-
-	}
-
-		app.fetch()
-	window.setInterval(function(){
-		app.clearMessages()
-		app.fetch()
-	},10000)
-
-	$(document).ready(function(){
-
-
-		// $(".username").click(function(){app.addFriend()})
-		$(document).on('click', '.username', function(){
-			var context=this
-			app.addFriend(context)
-		})
-
-		$(document).on('click', '.submit', function(){
+		submitHandler: function(e){
 			var userName = window.location.href.split('username=')[1];
-			console.log(userName);
 			var message = {
 				username: userName.slice(0,-1),
 				text:$("#message").val(),
 				roomname:$("#roomSelect option:selected").text()
 			}
-			console.log("username:"+message.username)
-			console.log("text: "+ message.text)
-			console.log("roomname:" + message.roomname)
+
+			alert(message.username)
 			app.send(message)
+			e.preventDefault()
+		}
+	}
+
+app.fetch()
+setInterval(function(){app.fetch()},3000)
+
+	$(document).ready(function(){
+
+
+		$(document).on('click', '.username', function(){
+			var context=this
+			app.addFriend(context)
 		})
 
+		$(".submit").click(function(){
+			app.submitHandler()	
+		})
+
+		$("#roomSelect").change(function(){
+				app.fetch()
+			});
 		
 	})
 
