@@ -1,12 +1,13 @@
 (function(){
 
 	window.app = {
+		existingRooms:[],
+		lastMessageId:0,
 		server: 'https://api.parse.com/1/classes/chatterbox',
 		init: function(){
 
 		},
 		send: function(data){
-			alert("this is the alert from send: ", data)
 			$.ajax({
 			  url: app.server,
 			  type: 'POST',
@@ -23,7 +24,6 @@
 		},
 
 		fetch: function(){
-			// var ajaxData = data.reverse();
 			$.ajax({
 			  url: app.server,
 			  type: 'GET',
@@ -31,14 +31,15 @@
 			  contentType: 'application/json',
 			  success: function (data) {
 			  	console.log(data)
+		  	
 			    for (var i=0;i<data.results.length;i++){
 			    	if (data.results[i].roomname===$("#roomSelect option:selected").text()){
 			    		app.addMessage(data.results[i])
 			    	}
 			    }
+			  	
 
 			    var rooms=[]
-
 			    for (var i=0;i<data.results.length;i++){
 			    	rooms.push(data.results[i].roomname)
 			    }
@@ -46,11 +47,11 @@
 			    rooms=_.uniq(rooms)
 
 			    for (var i=0;i<rooms.length;i++){
-			    	app.addRoom(rooms[i])
+		    		if (app.existingRooms.indexOf(rooms[i]) ===-1){
+				    	app.addRoom(rooms[i])
+				    	app.existingRooms.push(rooms[i])		    		
+		    		}
 			    }
-
-
-
 			  },
 			  error: function (data) {
 			    console.error('chatterbox: Failed to retrieve');
@@ -85,16 +86,15 @@
 
 	}
 
-		app.fetch()
+	app.fetch()
+
 	window.setInterval(function(){
 		app.clearMessages()
 		app.fetch()
-	},10000)
+	},5000)
 
 	$(document).ready(function(){
 
-
-		// $(".username").click(function(){app.addFriend()})
 		$(document).on('click', '.username', function(){
 			var context=this
 			app.addFriend(context)
@@ -102,17 +102,17 @@
 
 		$(document).on('click', '.submit', function(){
 			var userName = window.location.href.split('username=')[1];
-			console.log(userName);
 			var message = {
 				username: userName.slice(0,-1),
 				text:$("#message").val(),
 				roomname:$("#roomSelect option:selected").text()
 			}
-			console.log("username:"+message.username)
-			console.log("text: "+ message.text)
-			console.log("roomname:" + message.roomname)
 			app.send(message)
 		})
+
+		$(document).on("change", "#roomSelect", function(){
+			app.fetch()
+		});
 
 		
 	})
