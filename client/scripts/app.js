@@ -7,7 +7,6 @@
 
 		},
 		send: function(data){
-			alert("almost there")
 			$.ajax({
 			  url: app.server,
 			  type: 'POST',
@@ -15,7 +14,6 @@
 			  contentType: 'application/json',
 			  success: function (data) {
 			  	app.fetch()
-			  	alert("success!")
 			    console.log('chatterbox: Message sent');
 			  },
 			  error: function (data) {
@@ -25,7 +23,6 @@
 		},
 
 		fetch: function(){
-			// var ajaxData = data.reverse();
 			$.ajax({
 			  url: app.server,
 			  type: 'GET',
@@ -96,8 +93,6 @@
 				text:$("#message").val(),
 				roomname:$("#roomSelect option:selected").text()
 			}
-
-			alert(message.username)
 			app.send(message)
 			e.preventDefault()
 		}
@@ -107,7 +102,6 @@ app.fetch()
 setInterval(function(){app.fetch()},3000)
 
 	$(document).ready(function(){
-
 
 		$(document).on('click', '.username', function(){
 			var context=this
